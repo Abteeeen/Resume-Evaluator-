@@ -1,65 +1,285 @@
-import Image from "next/image";
+'use client';
 
-export default function Home() {
+import React, { useState, useEffect } from 'react';
+import { FileText, Plus, Search, Users, Activity, Loader2, Star, Calendar } from 'lucide-react';
+import { supabase } from '@/lib/supabase';
+import { UploadResume } from '@/components/dashboard/UploadResume';
+import { CreateJD } from '@/components/dashboard/CreateJD';
+
+export default function Dashboard() {
+  const [jds, setJds] = useState<any[]>([]);
+  const [evaluations, setEvaluations] = useState<any[]>([]);
+  const [selectedJdId, setSelectedJdId] = useState<string>('');
+  const [loading, setLoading] = useState(true);
+  const [showCreateJd, setShowCreateJd] = useState(false);
+
+  const [selectedEval, setSelectedEval] = useState<any>(null);
+
+  const fetchData = async () => {
+    setLoading(true);
+    
+    const { data: jdsData } = await supabase
+      .from('job_descriptions')
+      .select('*')
+      .order('created_at', { ascending: false });
+
+    const { data: evalsData } = await supabase
+      .from('evaluations')
+      .select(`
+        *,
+        resumes (filename, source),
+        job_descriptions (title)
+      `)
+      .order('created_at', { ascending: false });
+
+    if (jdsData) {
+      setJds(jdsData);
+      if (jdsData.length > 0 && !selectedJdId) {
+        setSelectedJdId(jdsData[0].id);
+      }
+    }
+    if (evalsData) setEvaluations(evalsData);
+    setLoading(false);
+  };
+
+  useEffect(() => {
+    fetchData();
+  }, []);
+
+  const getDetailedFeedback = (evalItem: any) => {
+    try {
+      return JSON.parse(evalItem.detailed_feedback || '{}');
+    } catch {
+      return {};
+    }
+  };
+
+  if (loading && jds.length === 0) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-[#050505]">
+        <Loader2 className="animate-spin text-purple-500" size={48} />
+      </div>
+    );
+  }
+
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
+    <main className="min-h-screen p-8 max-w-7xl mx-auto space-y-8 animate-in fade-in duration-700">
+      {/* Detail Modal */}
+      {selectedEval && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+          <div className="glass-card max-w-2xl w-full max-h-[90vh] overflow-y-auto p-8 relative animate-in zoom-in duration-300">
+            <button 
+              onClick={() => setSelectedEval(null)}
+              className="absolute top-4 right-4 p-2 hover:bg-white/10 rounded-full transition-colors"
+            >
+              <Plus className="rotate-45" size={24} />
+            </button>
+            
+            <div className="space-y-6">
+              <div className="flex justify-between items-end">
+                <div>
+                  <h2 className="text-2xl font-bold text-gradient">{selectedEval.resumes.filename}</h2>
+                  <p className="text-zinc-500">{selectedEval.job_descriptions.title}</p>
+                </div>
+                <div className="text-right">
+                  <div className="text-4xl font-extrabold text-purple-400">{selectedEval.score}%</div>
+                  <p className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest">Match Score</p>
+                </div>
+              </div>
+
+              <div className="p-4 bg-white/5 rounded-xl border border-white/5 text-zinc-300 leading-relaxed italic">
+                "{selectedEval.summary}"
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="space-y-3">
+                  <h4 className="text-sm font-bold text-green-400 uppercase tracking-widest">Strengths</h4>
+                  <ul className="space-y-2">
+                    {getDetailedFeedback(selectedEval).pros?.map((pro: string, i: number) => (
+                      <li key={i} className="text-sm flex items-start gap-2 text-zinc-400">
+                        <div className="mt-1.5 w-1.5 h-1.5 rounded-full bg-green-500 shrink-0" />
+                        {pro}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+                <div className="space-y-3">
+                  <h4 className="text-sm font-bold text-red-400 uppercase tracking-widest">Gaps / Concerns</h4>
+                  <ul className="space-y-2">
+                    {getDetailedFeedback(selectedEval).cons?.map((con: string, i: number) => (
+                      <li key={i} className="text-sm flex items-start gap-2 text-zinc-400">
+                        <div className="mt-1.5 w-1.5 h-1.5 rounded-full bg-red-500 shrink-0" />
+                        {con}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              </div>
+
+              <div className="space-y-3 pt-4 border-t border-white/5">
+                <h4 className="text-sm font-bold text-purple-400 uppercase tracking-widest">Final Verdict</h4>
+                <p className="text-sm text-zinc-400 leading-relaxed">
+                  {getDetailedFeedback(selectedEval).finalVerdict}
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Header */}
+      <header className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6 mb-12">
+        <div>
+          <h1 className="text-5xl font-extrabold tracking-tighter text-gradient mb-2">
+            AI Resume Evaluator
           </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
+          <p className="text-zinc-400 text-lg">
+            Smart candidate assessment powered by Gemini 1.5 Pro.
           </p>
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
+        <div className="flex gap-4">
+          <button 
+            onClick={() => setShowCreateJd(!showCreateJd)}
+            className="glass-button flex items-center gap-2"
           >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
+            <Plus size={18} /> {showCreateJd ? 'Cancel' : 'New JD'}
+          </button>
         </div>
-      </main>
-    </div>
+      </header>
+
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div className="lg:col-span-2 space-y-8">
+          {/* Create JD Section */}
+          {showCreateJd && (
+            <CreateJD onCreated={() => { setShowCreateJd(false); fetchData(); }} />
+          )}
+
+          {/* Quick Stats */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {[
+              { label: 'Total Resumes', value: evaluations.length, icon: Users, color: 'text-blue-400' },
+              { label: 'Avg Match', value: `${Math.round(evaluations.reduce((acc, cur) => acc + cur.score, 0) / (evaluations.length || 1))}%`, icon: Star, color: 'text-purple-400' },
+              { label: 'Active Roles', value: jds.length, icon: FileText, color: 'text-green-400' },
+            ].map((stat, i) => (
+              <div key={i} className="glass-card p-6 flex items-center gap-4 group hover:scale-[1.02] transition-all">
+                <div className={`p-3 rounded-xl bg-white/5 ${stat.color}`}>
+                  <stat.icon size={24} />
+                </div>
+                <div>
+                  <p className="text-sm text-zinc-400 font-medium">{stat.label}</p>
+                  <p className="text-2xl font-bold">{stat.value}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* Evaluations Table */}
+          <section className="space-y-6">
+            <h2 className="text-xl font-semibold flex items-center gap-2">
+              Recent Evaluations <Activity size={18} className="text-purple-400" />
+            </h2>
+            <div className="glass-card overflow-hidden">
+              <div className="overflow-x-auto">
+                <table className="w-full text-left">
+                  <thead className="bg-white/5 border-b border-white/10">
+                    <tr>
+                      <th className="px-6 py-4 font-medium text-zinc-400">Candidate / Role</th>
+                      <th className="px-6 py-4 font-medium text-zinc-400">Match Score</th>
+                      <th className="px-6 py-4 font-medium text-zinc-400">Source</th>
+                      <th className="px-6 py-4 font-medium text-zinc-400">Date</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-white/5">
+                    {evaluations.map((evalItem) => (
+                      <tr 
+                        key={evalItem.id} 
+                        onClick={() => setSelectedEval(evalItem)}
+                        className="hover:bg-white/5 transition-colors cursor-pointer group"
+                      >
+                        <td className="px-6 py-4">
+                          <div className="font-semibold group-hover:text-purple-400 transition-colors">
+                            {evalItem.resumes.filename}
+                          </div>
+                          <div className="text-xs text-zinc-500">{evalItem.job_descriptions.title}</div>
+                        </td>
+                        <td className="px-6 py-4">
+                          <div className="flex items-center gap-3">
+                            <div className="w-24 bg-white/5 h-2 rounded-full overflow-hidden">
+                              <div 
+                                className={`h-full ${evalItem.score > 70 ? 'bg-green-500' : 'bg-purple-500'}`} 
+                                style={{ width: `${evalItem.score}%` }} 
+                              />
+                            </div>
+                            <span className="font-mono text-sm font-bold">{evalItem.score}%</span>
+                          </div>
+                        </td>
+                        <td className="px-6 py-4">
+                          <span className="px-2 py-1 rounded-md bg-white/5 text-zinc-400 text-[10px] font-bold uppercase tracking-widest">
+                            {evalItem.resumes.source}
+                          </span>
+                        </td>
+                        <td className="px-6 py-4 text-zinc-500 text-sm">
+                          {new Date(evalItem.created_at).toLocaleDateString()}
+                        </td>
+                      </tr>
+                    ))}
+                    {evaluations.length === 0 && (
+                      <tr>
+                        <td colSpan={4} className="px-6 py-12 text-center text-zinc-500">
+                          No evaluations yet. Select a JD and upload a resume to start.
+                        </td>
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </section>
+        </div>
+
+        <div className="space-y-8">
+          {/* JD Selector & Upload Section */}
+          <section className="space-y-6">
+            <h2 className="text-xl font-semibold px-2">Action Center</h2>
+            <div className="glass-card p-6 space-y-6">
+              <div className="space-y-2">
+                <label className="text-xs font-bold text-zinc-500 uppercase tracking-widest pl-1">Target Role</label>
+                <select 
+                  value={selectedJdId} 
+                  onChange={(e) => setSelectedJdId(e.target.value)}
+                  className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 outline-none focus:border-purple-500 transition-all appearance-none cursor-pointer"
+                >
+                  {jds.map(jd => (
+                    <option key={jd.id} value={jd.id} className="bg-[#111]">{jd.title}</option>
+                  ))}
+                  {jds.length === 0 && <option className="bg-[#111]">No JDs found</option>}
+                </select>
+              </div>
+
+              <UploadResume jdId={selectedJdId} onSuccess={fetchData} />
+            </div>
+          </section>
+
+          {/* Recent JDs List */}
+          <section className="space-y-6">
+            <h2 className="text-xl font-semibold px-2">Available Roles</h2>
+            <div className="space-y-4">
+              {jds.map((jd) => (
+                <div key={jd.id} className={`glass-card p-4 group cursor-pointer border-transparent hover:border-white/20 transition-all ${selectedJdId === jd.id ? 'border-purple-500/50 bg-purple-500/5' : ''}`}>
+                  <div className="flex justify-between items-start mb-4">
+                    <div className={`w-2 h-2 rounded-full ${jd.is_active ? 'bg-green-500' : 'bg-zinc-600'}`} />
+                    <span className="text-[10px] font-bold text-zinc-500 uppercase">v{jd.version || 1}.0</span>
+                  </div>
+                  <h3 className="font-bold mb-1 group-hover:text-purple-400 transition-colors uppercase tracking-tight">{jd.title}</h3>
+                  <div className="flex items-center gap-2 text-[10px] text-zinc-500 uppercase font-bold">
+                    <Calendar size={12} /> {new Date(jd.created_at).toLocaleDateString()}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </section>
+        </div>
+      </div>
+    </main>
   );
 }
