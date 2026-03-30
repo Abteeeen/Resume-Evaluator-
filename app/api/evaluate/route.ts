@@ -6,12 +6,13 @@ import { supabase } from '@/lib/supabase';
 export async function POST(req: NextRequest) {
     try {
         const formData = await req.formData();
-        const file = formData.get('resume') as File;
+        const file = formData.get('resume') as File | null;
+        const resumeUrl = formData.get('resumeUrl') as string | null;
         const jdId = formData.get('jdId') as string;
-        const source = formData.get('source') as string || 'local';
+        const source = formData.get('source') as string || (resumeUrl ? 'url' : 'local');
 
-        if (!file || !jdId) {
-            return NextResponse.json({ error: 'Missing resume or jdId' }, { status: 400 });
+        if ((!file && !resumeUrl) || !jdId) {
+            return NextResponse.json({ error: 'Missing resume file/URL or jdId' }, { status: 400 });
         }
 
         // 0. Extract AI Config from headers
@@ -40,17 +41,47 @@ export async function POST(req: NextRequest) {
         }
 
         // 2. Parse Resume
-        const buffer = Buffer.from(await file.arrayBuffer());
-        const resumeText = await parseResumeFile(buffer);
+        let resumeText = '';
+        let filename = '';
+        let fileType = '';
+        let fileSize = 0;
+
+        if (resumeUrl) {
+            filename = resumeUrl;
+            fileType = 'url';
+            try {
+                const cheerio = await import('cheerio');
+                const response = await fetch(resumeUrl, {
+                    headers: {
+                        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
+                    }
+                });
+                if (!response.ok) throw new Error(`Failed to fetch URL: ${response.statusText}`);
+                const html = await response.text();
+                const $ = cheerio.load(html);
+                resumeText = $('body').text().replace(/\s+/g, ' ').trim();
+                fileSize = html.length;
+                if (!resumeText) throw new Error('No readable text found on the page');
+            } catch (error: any) {
+                console.error('URL Fetch Error:', error);
+                return NextResponse.json({ error: `Could not parse URL: ${error.message}` }, { status: 400 });
+            }
+        } else if (file) {
+            filename = file.name;
+            fileType = file.type;
+            fileSize = file.size;
+            const buffer = Buffer.from(await file.arrayBuffer());
+            resumeText = await parseResumeFile(buffer);
+        }
 
         // 3. Save Resume to DB
         const { data: resume, error: resumeError } = await supabase
             .from('resumes')
             .insert({
-                filename: file.name,
+                filename: filename,
                 parsed_content: resumeText,
                 source: source,
-                metadata: { type: file.type, size: file.size }
+                metadata: { type: fileType, size: fileSize }
             })
             .select()
             .single();

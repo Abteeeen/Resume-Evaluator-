@@ -14,7 +14,7 @@ export async function callAI(prompt: string, config: AIConfig) {
 
   if (provider === 'gemini') {
     const genAI = new GoogleGenerativeAI(apiKey);
-    const geminiModel = genAI.getGenerativeModel({ model: model || 'gemini-2.5-flash' });
+    const geminiModel = genAI.getGenerativeModel({ model: model || 'gemini-1.5-flash' });
     const result = await geminiModel.generateContent(prompt);
     const response = await result.response;
     return response.text();

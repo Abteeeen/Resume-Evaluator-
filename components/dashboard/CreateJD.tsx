@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { FileText, Save, Loader2 } from 'lucide-react';
+import { FileText, Save, Loader2, Plus } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 
 interface CreateJDProps {
@@ -30,34 +30,37 @@ export function CreateJD({ onCreated }: CreateJDProps) {
   };
 
   return (
-    <div className="glass-card p-6 space-y-4">
-      <h3 className="text-lg font-bold flex items-center gap-2">
-        <FileText size={20} className="text-purple-400" /> New Job Description
-      </h3>
+    <div className="retro-card space-y-6">
+      <div className="flex justify-between items-center mb-2 border-b-2 border-[#D4A574] pb-2">
+        <h2 className="text-xl font-bold text-[#3E362E] font-serif">Create New Role</h2>
+      </div>
       
-      <div className="space-y-4 text-sm">
+      <div className="space-y-4 text-sm font-mono">
         <input
           type="text"
-          placeholder="Job Title (e.g. Senior Frontend Developer)"
+          placeholder="Role Title (e.g., Senior Developer)"
           value={title}
           onChange={(e) => setTitle(e.target.value)}
-          className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2 outline-none focus:border-purple-500 transition-colors"
+          className="w-full bg-[#F5E6C8] border-2 border-[#D4A574] rounded-none py-3 px-4 outline-none focus:border-[#4A7B7C] transition-colors font-bold text-[#3E362E] placeholder-[#3E362E]/40"
         />
         
         <textarea
-          placeholder="Paste Job Description requirements here..."
+          placeholder="Paste full job description here..."
           value={content}
           onChange={(e) => setContent(e.target.value)}
-          rows={6}
-          className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2 outline-none focus:border-purple-500 transition-colors"
+          className="w-full bg-[#F5E6C8] border-2 border-[#D4A574] rounded-none py-3 px-4 h-32 outline-none focus:border-[#4A7B7C] transition-colors font-medium text-[#3E362E] placeholder-[#3E362E]/40 resize-y"
         />
 
         <button
-          onClick={handleSave}
           disabled={!title || !content || saving}
-          className="w-full py-2 flex items-center justify-center gap-2 bg-white/10 hover:bg-white/20 rounded-lg font-semibold transition-all disabled:opacity-50"
+          onClick={handleSave}
+          className="retro-button w-full sm:w-auto"
         >
-          {saving ? <Loader2 className="animate-spin" size={18} /> : <><Save size={18} /> Save JD</>}
+          {saving ? (
+            <><Loader2 className="animate-spin" size={18} /> Saving...</>
+          ) : (
+            <><Plus size={18} /> Save Job Description</>
+          )}
         </button>
       </div>
     </div>

@@ -1,54 +1,117 @@
 @import "tailwindcss";
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --color-glass-bg: rgba(255, 255, 255, 0.03);
-  --color-glass-border: rgba(255, 255, 255, 0.1);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+@theme {
+  --color-vintage-cream: #F5E6C8;
+  --color-vintage-sepia: #D4A574;
+  --color-vintage-teal: #4A7B7C;
+  --color-vintage-pink: #E8B4B8;
+  --color-vintage-dark: #3E362E;
 }
 
-:root {
-  --background: #050505;
-  --foreground: #ffffff;
-  --accent-primary: #a855f7;
-  --accent-secondary: #3b82f6;
+@layer base {
+  body {
+    @apply bg-[#F5E6C8] text-[#3E362E] antialiased min-h-screen font-serif selection:bg-[#E8B4B8];
+    position: relative;
+    overflow-x: hidden;
+  }
+
+  /* Film Grain Overlay */
+  body::before {
+    content: "";
+    position: fixed;
+    top: 0; left: 0; width: 100vw; height: 100vh;
+    pointer-events: none;
+    z-index: 50;
+    opacity: 0.15;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+    mix-blend-mode: multiply;
+  }
+
+  /* Soft Light Leak */
+  body::after {
+    content: "";
+    position: fixed;
+    top: -20%; right: -10%; width: 60%; height: 80%;
+    background: radial-gradient(circle, rgba(232, 180, 184, 0.4) 0%, transparent 60%);
+    pointer-events: none;
+    z-index: 49;
+    filter: blur(60px);
+    border-radius: 50%;
+  }
 }
 
-body {
-  background: radial-gradient(circle at top right, rgba(168, 85, 247, 0.1), transparent),
-              radial-gradient(circle at bottom left, rgba(59, 130, 246, 0.15), transparent),
-              #050505;
-  color: #ffffff;
-  min-height: 100vh;
+@layer utilities {
+  .retro-card {
+    background-color: #FAFAFA;
+    border: 1px solid #D4A574;
+    border-radius: 4px; /* Polaroid/Photo look */
+    padding: 1.5rem;
+    box-shadow: 6px 6px 0px rgba(212, 165, 116, 0.4), inset 0 0 10px rgba(0,0,0,0.03);
+    position: relative;
+    transition: all 0.2s ease-in-out;
+    filter: sepia(0.2) contrast(0.95);
+  }
+
+  .retro-card-hover:hover {
+    transform: translate(-3px, -3px);
+    box-shadow: 9px 9px 0px rgba(212, 165, 116, 0.6), inset 0 0 10px rgba(0,0,0,0.05);
+    filter: sepia(0.1) contrast(1);
+    z-index: 10;
+  }
+
+  /* A tape effect at the top of cards */
+  .retro-card::before {
+    content: "";
+    position: absolute;
+    top: -12px;
+    left: 50%;
+    transform: translateX(-50%) rotate(-2deg);
+    width: 60px;
+    height: 24px;
+    background: rgba(255, 255, 255, 0.5);
+    border: 1px solid rgba(0,0,0,0.1);
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    z-index: 2;
+  }
+
+  .retro-button {
+    background-color: #4A7B7C;
+    color: #F5E6C8;
+    border: 2px solid #3E362E;
+    border-radius: 2px;
+    padding: 0.75rem 1.5rem;
+    font-weight: bold;
+    font-family: monospace;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    box-shadow: 4px 4px 0px #3E362E;
+    transition: all 0.1s;
+    outline: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+  }
+
+  .retro-button:hover {
+    transform: translate(2px, 2px);
+    box-shadow: 2px 2px 0px #3E362E;
+  }
+
+  .retro-button:active {
+    transform: translate(4px, 4px);
+    box-shadow: 0px 0px 0px #3E362E;
+  }
 }
 
-@layer components {
-  .glass-card {
-    background: rgba(255, 255, 255, 0.03);
-    border: 1px solid rgba(255, 255, 255, 0.08);
-    backdrop-filter: blur(16px);
-    border-radius: 1.5rem;
-  }
-  
-  .glass-button {
-    background: rgba(255, 255, 255, 0.05);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    backdrop-filter: blur(8px);
-    border-radius: 0.75rem;
-    transition: all 0.3s ease;
-  }
-
-  .glass-button:hover {
-    background: rgba(255, 255, 255, 0.1);
-    border-color: rgba(255, 255, 255, 0.2);
-  }
-
-  .text-gradient {
-    background: linear-gradient(to right, #c084fc, #60a5fa);
-    -webkit-background-clip: text;
-    background-clip: text;
-    color: transparent;
-  }
+::-webkit-scrollbar {
+  width: 10px;
+}
+::-webkit-scrollbar-track {
+  background: #F5E6C8;
+  border-left: 1px solid #D4A574;
+}
+::-webkit-scrollbar-thumb {
+  background: #D4A574;
+  border: 1px solid #3E362E;
 }
