@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { FileText, Plus, Search, Users, Activity, Loader2, Star, Calendar } from 'lucide-react';
+import { FileText, Plus, Search, Users, Activity, Loader2, Star, Calendar, X } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { UploadResume } from '@/components/dashboard/UploadResume';
 import { CreateJD } from '@/components/dashboard/CreateJD';
