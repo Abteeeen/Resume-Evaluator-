@@ -17,6 +17,7 @@ export default function Dashboard() {
   const [showCreateJd, setShowCreateJd] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
   const [selectedEval, setSelectedEval] = useState<any>(null);
+  const [showResume, setShowResume] = useState(false);
 
   const fetchData = async () => {
     setLoading(true);
@@ -30,7 +31,7 @@ export default function Dashboard() {
       .from('evaluations')
       .select(`
         *,
-        resumes (filename, source),
+        resumes (filename, source, parsed_content),
         job_descriptions (title)
       `)
       .order('created_at', { ascending: false });
@@ -80,8 +81,23 @@ export default function Dashboard() {
               >
                 <Plus className="rotate-45" size={24} />
               </button>
+            {/* Resume Viewer Button */}
+            <button
+                onClick={() => setShowResume(!showResume)}
+                className="absolute top-4 left-4 p-2 hover:bg-[#D4A574]/30 rounded-none transition-colors text-[#3E362E]"
+            >
+                <FileText size={24} />
+            </button>
             
             <div className="space-y-6 pr-12">
+              {/* Resume Sidebar */}
+              {showResume && selectedEval && (
+                <div className="absolute inset-y-0 right-0 w-1/3 bg-[#F5E6C8] p-4 overflow-y-auto border-l border-[#D4A574]">
+                  <h4 className="text-sm font-bold text-[#3E362E] mb-2">Resume Content</h4>
+                  <pre className="text-xs whitespace-pre-wrap text-[#3E362E]">{selectedEval.resumes.parsed_content}</pre>
+                </div>
+              )}
+
               <div className="flex justify-between items-end">
                 <div>
                   <h2 className="text-2xl font-bold text-[#3E362E] font-serif">{selectedEval.resumes.filename}</h2>
