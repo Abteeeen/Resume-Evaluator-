@@ -1,4 +1,4 @@
-import { GoogleGenerativeAI } from '@google/generative-ai';
+import { AIConfig, callAI } from './ai-factory';
 
 interface EvaluationResult {
     score: number;
@@ -8,17 +8,18 @@ interface EvaluationResult {
     finalVerdict: string;
 }
 
-export async function evaluateResume(resumeText: string, jdText: string): Promise<EvaluationResult> {
-    const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!);
-    const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
-
+export async function evaluateResume(
+    resumeText: string, 
+    jdText: string,
+    config: AIConfig
+): Promise<EvaluationResult> {
     const prompt = `
     You are a Senior Technical Recruiter. Your task is to evaluate a candidate's resume against a specific Job Description (JD).
     
     ### Guidelines:
     1. Be objective and critical. 
     2. Focus on core technical skills, years of experience, and project complexity.
-    3. Provide the results ONLY in the following JSON format:
+    3. Provide the results ONLY in a valid JSON format:
     {
       "score": <number 0-100>,
       "summary": "<1-2 sentences overview>",
@@ -35,13 +36,9 @@ export async function evaluateResume(resumeText: string, jdText: string): Promis
     `;
 
     try {
-        const result = await model.generateContent(prompt);
-        const response = await result.response;
-        const text = response.text();
-        
+        const text = await callAI(prompt, config);
         console.log('AI RAW RESPONSE:', text);
         
-        // Clean JSON from potential markdown markers or extra text
         const jsonMatch = text.match(/\{[\s\S]*\}/);
         if (!jsonMatch) {
             throw new Error('AI response did not contain valid JSON');

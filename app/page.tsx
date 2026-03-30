@@ -5,6 +5,8 @@ import { FileText, Plus, Search, Users, Activity, Loader2, Star, Calendar, X } f
 import { supabase } from '@/lib/supabase';
 import { UploadResume } from '@/components/dashboard/UploadResume';
 import { CreateJD } from '@/components/dashboard/CreateJD';
+import { Settings } from '@/components/settings/Settings';
+import { Settings as SettingsIcon } from 'lucide-react';
 
 export default function Dashboard() {
   const [jds, setJds] = useState<any[]>([]);
@@ -12,7 +14,7 @@ export default function Dashboard() {
   const [selectedJdId, setSelectedJdId] = useState<string>('');
   const [loading, setLoading] = useState(true);
   const [showCreateJd, setShowCreateJd] = useState(false);
-
+  const [showSettings, setShowSettings] = useState(false);
   const [selectedEval, setSelectedEval] = useState<any>(null);
 
   const fetchData = async () => {
@@ -64,6 +66,9 @@ export default function Dashboard() {
 
   return (
     <main className="min-h-screen p-8 max-w-7xl mx-auto space-y-8 animate-in fade-in duration-700">
+      {/* Settings Modal */}
+      {showSettings && <Settings onClose={() => setShowSettings(false)} />}
+      
       {/* Detail Modal */}
       {selectedEval && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
@@ -138,6 +143,12 @@ export default function Dashboard() {
           </p>
         </div>
         <div className="flex gap-4">
+          <button 
+            onClick={() => setShowSettings(true)}
+            className="p-4 glass-card hover:bg-white/10 transition-colors text-zinc-400 hover:text-purple-400"
+          >
+            <SettingsIcon size={20} />
+          </button>
           <button 
             onClick={() => setShowCreateJd(!showCreateJd)}
             className="glass-button flex items-center gap-2"

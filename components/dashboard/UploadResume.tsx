@@ -24,8 +24,15 @@ export function UploadResume({ jdId, onSuccess }: UploadResumeProps) {
     formData.append('jdId', jdId);
 
     try {
+      const config = JSON.parse(localStorage.getItem('ai-config') || '{}');
+      
       const res = await fetch('/api/evaluate', {
         method: 'POST',
+        headers: {
+          'x-ai-provider': config.provider || 'gemini',
+          'x-ai-key': config.apiKey || '',
+          'x-ai-model': config.model || '',
+        },
         body: formData,
       });
       

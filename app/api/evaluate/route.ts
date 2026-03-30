@@ -14,6 +14,20 @@ export async function POST(req: NextRequest) {
             return NextResponse.json({ error: 'Missing resume or jdId' }, { status: 400 });
         }
 
+        // 0. Extract AI Config from headers
+        const provider = req.headers.get('x-ai-provider') || 'gemini';
+        const clientKey = req.headers.get('x-ai-key');
+        const apiKey = clientKey && clientKey !== 'null' && clientKey !== '' 
+            ? clientKey 
+            : process.env.GEMINI_API_KEY;
+        const modelName = req.headers.get('x-ai-model') || undefined;
+
+        if (!apiKey) {
+            return NextResponse.json({ error: 'API Key missing. Please configure it in Settings or .env.' }, { status: 401 });
+        }
+
+        const aiConfig = { provider: provider as any, apiKey, model: modelName };
+
         // 1. Fetch JD
         const { data: jd, error: jdError } = await supabase
             .from('job_descriptions')
@@ -47,7 +61,7 @@ export async function POST(req: NextRequest) {
         }
 
         // 4. Evaluate with AI
-        const evaluation = await evaluateResume(resumeText, jd.content);
+        const evaluation = await evaluateResume(resumeText, jd.content, aiConfig);
 
         // 5. Save Evaluation Result
         const { data: evalData, error: evalError } = await supabase
