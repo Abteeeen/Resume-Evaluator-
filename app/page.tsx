@@ -265,7 +265,19 @@ export default function Dashboard() {
             <h2 className="text-xl font-semibold px-2">Available Roles</h2>
             <div className="space-y-4">
               {jds.map((jd) => (
-                <div key={jd.id} className={`glass-card p-4 group cursor-pointer border-transparent hover:border-white/20 transition-all ${selectedJdId === jd.id ? 'border-purple-500/50 bg-purple-500/5' : ''}`}>
+                <div key={jd.id} className={`glass-card p-4 group cursor-pointer border-transparent hover:border-white/20 transition-all relative ${selectedJdId === jd.id ? 'border-purple-500/50 bg-purple-500/5' : ''}`}>
+                  <button 
+                    onClick={async (e) => {
+                      e.stopPropagation();
+                      if (confirm('Delete this JD?')) {
+                        await supabase.from('job_descriptions').delete().eq('id', jd.id);
+                        fetchData();
+                      }
+                    }}
+                    className="absolute top-3 right-3 opacity-0 group-hover:opacity-100 p-1 hover:bg-white/10 rounded-md transition-all text-zinc-500 hover:text-red-400"
+                  >
+                    <X size={14} />
+                  </button>
                   <div className="flex justify-between items-start mb-4">
                     <div className={`w-2 h-2 rounded-full ${jd.is_active ? 'bg-green-500' : 'bg-zinc-600'}`} />
                     <span className="text-[10px] font-bold text-zinc-500 uppercase">v{jd.version || 1}.0</span>
