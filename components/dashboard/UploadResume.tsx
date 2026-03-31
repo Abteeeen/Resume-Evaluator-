@@ -46,13 +46,17 @@ export function UploadResume({ jdId, onSuccess }: UploadResumeProps) {
       });
       
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error || 'Upload failed');
+      if (!res.ok) {
+        const errorMsg = data.details?.message || data.error || 'Upload failed';
+        throw new Error(errorMsg);
+      }
       
       onSuccess(data);
       setFile(null);
       setUrl('');
     } catch (err: any) {
-      setError(err.message);
+      console.error('Upload Error:', err);
+      setError(err.message || 'Upload failed');
     } finally {
       setUploading(false);
     }

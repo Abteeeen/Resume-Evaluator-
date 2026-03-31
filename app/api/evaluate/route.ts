@@ -40,11 +40,12 @@ export async function POST(req: NextRequest) {
             return NextResponse.json({ error: 'Job Description not found' }, { status: 404 });
         }
 
-        // 2. Parse Resume
+        // 2. Extract Buffer & Parse Resume
         let resumeText = '';
         let filename = '';
         let fileType = '';
         let fileSize = 0;
+        let fileBuffer: Buffer | null = null;
 
         if (resumeUrl) {
             filename = resumeUrl;
@@ -70,15 +71,42 @@ export async function POST(req: NextRequest) {
             filename = file.name;
             fileType = file.type;
             fileSize = file.size;
-            const buffer = Buffer.from(await file.arrayBuffer());
-            resumeText = await parseResumeFile(buffer);
+            fileBuffer = Buffer.from(await file.arrayBuffer());
+            resumeText = await parseResumeFile(fileBuffer);
         }
 
-        // 3. Save Resume to DB
+        // Sanitize resumeText: Remove NULL characters and other problematic control chars
+        // Postgres TEXT/JSONB columns do not allow the NULL character (\u0000)
+        resumeText = resumeText.replace(/\u0000/g, '').replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g, '');
+
+        // 3. Save Resume to DB & Local Storage
+        let fileUrl = resumeUrl || null;
+
+        if (file && !resumeUrl && fileBuffer) {
+            const fs = await import('fs/promises');
+            const path = await import('path');
+            
+            const fileExt = filename.split('.').pop();
+            const uniqueName = `${Date.now()}-${Math.random().toString(36).substring(2)}.${fileExt}`;
+            const uploadDir = path.join(process.cwd(), 'public', 'uploads');
+            
+            try {
+                // Ensure directory exists
+                await fs.mkdir(uploadDir, { recursive: true });
+                // Save file locally
+                await fs.writeFile(path.join(uploadDir, uniqueName), fileBuffer);
+                fileUrl = `/uploads/${uniqueName}`;
+            } catch (err) {
+                console.error('Local Save Error:', err);
+                // Fallback to null if save fails
+            }
+        }
+
         const { data: resume, error: resumeError } = await supabase
             .from('resumes')
             .insert({
                 filename: filename,
+                file_url: fileUrl,
                 parsed_content: resumeText,
                 source: source,
                 metadata: { type: fileType, size: fileSize }
@@ -88,7 +116,7 @@ export async function POST(req: NextRequest) {
 
         if (resumeError) {
             console.error('Resume Save Error:', resumeError);
-            return NextResponse.json({ error: 'Failed to save resume' }, { status: 500 });
+            return NextResponse.json({ error: 'Failed to save resume', details: resumeError }, { status: 500 });
         }
 
         // 4. Evaluate with AI
@@ -111,6 +139,14 @@ export async function POST(req: NextRequest) {
             })
             .select()
             .single();
+
+        // 6. Update Resume with extracted salaries if found
+        if (evaluation.currentSalary || evaluation.expectedSalary) {
+             await supabase.from('resumes').update({
+                current_salary: evaluation.currentSalary,
+                expected_salary: evaluation.expectedSalary
+            }).eq('id', resume.id);
+        }
 
         if (evalError) {
             console.error('Evaluation Save Error:', evalError);

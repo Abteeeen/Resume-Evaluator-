@@ -6,6 +6,8 @@ interface EvaluationResult {
     pros: string[];
     cons: string[];
     finalVerdict: string;
+    currentSalary?: string;
+    expectedSalary?: string;
 }
 
 export async function evaluateResume(
@@ -19,13 +21,16 @@ export async function evaluateResume(
     ### Guidelines:
     1. Be objective and critical. 
     2. Focus on core technical skills, years of experience, and project complexity.
-    3. Provide the results ONLY in a valid JSON format:
+    3. Look for salary information (Current salary and Expected salary) if it's anywhere in the text (often at the beginning or end of application notes).
+    4. Provide the results ONLY in a valid JSON format:
     {
       "score": <number 0-100>,
       "summary": "<1-2 sentences overview>",
       "pros": ["skill/experience 1", "skill/experience 2"],
       "cons": ["gap 1", "missing requirement 2"],
-      "finalVerdict": "<detailed reasoning and recommendation>"
+      "finalVerdict": "<detailed reasoning and recommendation>",
+      "currentSalary": "<extracted value or null>",
+      "expectedSalary": "<extracted value or null>"
     }
 
     ### Job Description:
