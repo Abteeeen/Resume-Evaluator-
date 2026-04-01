@@ -72,30 +72,30 @@ export function Settings({ onClose }: SettingsProps) {
           </div>
 
           <div className="space-y-2">
-            <label className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest pl-1 flex items-center gap-2">
+            <label className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest pl-1 flex items-center gap-2">
               <Key size={12} /> API Key
             </label>
             <input
               type="password"
-              placeholder="Paste your key here..."
+              placeholder="Paste your API key here..."
               value={apiKey}
               onChange={(e) => setApiKey(e.target.value)}
-              className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 outline-none focus:border-purple-500 transition-all font-mono text-sm"
+              className="w-full bg-[#1A1A1A] border-2 border-white/20 rounded-xl px-4 py-3 outline-none focus:border-purple-500 focus:bg-[#252525] transition-all font-mono text-sm text-white placeholder:text-zinc-600"
             />
           </div>
 
           <div className="space-y-2">
-            <label className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest pl-1 flex items-center gap-2">
+            <label className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest pl-1 flex items-center gap-2">
               <ShieldCheck size={12} /> Specific Model (Optional)
             </label>
             <input
               type="text"
-              placeholder={provider === 'gemini' ? 'gemini-2.5-flash' : 'grok-2-1212'}
+              placeholder={provider === 'gemini' ? 'gemini-1.5-flash' : 'grok-2-1212'}
               value={model}
               onChange={(e) => setModel(e.target.value)}
-              className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 outline-none focus:border-purple-500 transition-all text-sm"
+              className="w-full bg-[#1A1A1A] border-2 border-white/20 rounded-xl px-4 py-3 outline-none focus:border-purple-500 focus:bg-[#252525] transition-all text-sm text-white placeholder:text-zinc-600"
             />
-            <p className="text-[10px] text-zinc-600 pl-1">Leave blank to use provider defaults.</p>
+            <p className="text-[10px] text-zinc-500 pl-1">Leave blank to use provider defaults.</p>
           </div>
 
           <button
