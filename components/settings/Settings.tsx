@@ -90,7 +90,7 @@ export function Settings({ onClose }: SettingsProps) {
             </label>
             <input
               type="text"
-              placeholder={provider === 'gemini' ? 'gemini-1.5-flash' : 'grok-2-1212'}
+              placeholder={provider === 'gemini' ? 'gemini-2.5-flash' : 'grok-2-1212'}
               value={model}
               onChange={(e) => setModel(e.target.value)}
               className="w-full bg-[#1A1A1A] border-2 border-white/20 rounded-xl px-4 py-3 outline-none focus:border-purple-500 focus:bg-[#252525] transition-all text-sm text-white placeholder:text-zinc-600"
