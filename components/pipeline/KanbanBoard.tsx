@@ -50,6 +50,20 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({ candidates, onCandidat
     setDraggedId(null);
   };
 
+  const handleStatusChange = (id: string, status: PipelineStatus) => {
+    onStatusChange(id, status);
+  };
+
+  const moveCandidate = (e: React.MouseEvent, candidateId: string, currentStatus: PipelineStatus, direction: 'forward' | 'backward') => {
+    e.stopPropagation();
+    const currentIndex = PIPELINE_COLUMNS.indexOf(currentStatus);
+    if (direction === 'forward' && currentIndex < PIPELINE_COLUMNS.length - 1) {
+      handleStatusChange(candidateId, PIPELINE_COLUMNS[currentIndex + 1]);
+    } else if (direction === 'backward' && currentIndex > 0) {
+      handleStatusChange(candidateId, PIPELINE_COLUMNS[currentIndex - 1]);
+    }
+  };
+
   if (isLoading) {
     return (
       <div className="flex justify-center items-center h-64">
@@ -68,7 +82,7 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({ candidates, onCandidat
   };
 
   return (
-    <div className="flex gap-4 overflow-x-auto pb-4 items-start min-h-[60vh] font-mono">
+    <div className="flex gap-4 sm:gap-6 overflow-x-auto pb-6 sm:pb-8 items-start min-h-[60vh] font-mono snap-x snap-mandatory px-2 sm:px-0">
       {PIPELINE_COLUMNS.map(column => {
         const columnCandidates = candidates.filter(c => (c.pipeline_status || 'New') === column)
                                             .sort((a, b) => b.score - a.score);
@@ -76,7 +90,7 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({ candidates, onCandidat
         return (
           <div 
             key={column}
-            className={`min-w-[280px] w-80 shadow-sm border-t-4 ${colColors[column]} flex flex-col retro-card p-4 transition-colors ${draggedId ? 'border-dashed border-2' : ''}`}
+            className={`flex-none w-[85vw] sm:w-auto sm:flex-1 sm:min-w-[280px] sm:max-w-[340px] shadow-sm border-t-4 ${colColors[column]} flex flex-col retro-card p-3 sm:p-4 transition-colors snap-center ${draggedId ? 'border-dashed border-2' : ''}`}
             onDragOver={handleDragOver}
             onDrop={(e) => handleDrop(e, column)}
           >
@@ -110,17 +124,24 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({ candidates, onCandidat
                      <FileText size={10} /> {candidate.job_descriptions.title}
                    </div>
 
-                   {/* Quick Status Move Button (Mobile / Accessibility) */}
-                   <div className="absolute opacity-0 group-hover:opacity-100 right-2 bottom-2 bg-[#D4A574]/20 p-1 hover:bg-[#D4A574]/50 transition-colors z-10"
-                        title="Move to Next Stage" 
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          const currentIndex = PIPELINE_COLUMNS.indexOf(column);
-                          if (currentIndex < PIPELINE_COLUMNS.length - 1) {
-                            onStatusChange(candidate.id, PIPELINE_COLUMNS[currentIndex + 1]);
-                          }
-                        }}>
-                     <ChevronRight size={14} className="text-[#3E362E]" />
+                   {/* Quick Status Move Buttons (Mobile / Accessibility) */}
+                   <div className="flex absolute opacity-100 lg:opacity-0 lg:group-hover:opacity-100 right-2 bottom-2 gap-1 z-10 transition-opacity">
+                     {/* Move Backward */}
+                     {column !== 'New' && (
+                       <div className="bg-[#D4A574]/20 p-1.5 hover:bg-[#D4A574]/50 transition-colors"
+                            title="Move to Previous Stage" 
+                            onClick={(e) => moveCandidate(e, candidate.id, column, 'backward')}>
+                         <ChevronRight size={14} className="text-[#3E362E] rotate-180" />
+                       </div>
+                     )}
+                     {/* Move Forward */}
+                     {column !== 'Hired' && (
+                       <div className="bg-[#D4A574]/20 p-1.5 hover:bg-[#D4A574]/50 transition-colors"
+                            title="Move to Next Stage" 
+                            onClick={(e) => moveCandidate(e, candidate.id, column, 'forward')}>
+                         <ChevronRight size={14} className="text-[#3E362E]" />
+                       </div>
+                     )}
                    </div>
                 </div>
               ))}
