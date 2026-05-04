@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
-import { Loader2, ArrowLeft, Star, X } from 'lucide-react';
+import { Loader2, ArrowLeft, Star, X, Brain } from 'lucide-react';
 import Link from 'next/link';
 import { KanbanBoard, PipelineStatus } from '@/components/pipeline/KanbanBoard';
 import { SkillHeatmap } from '@/components/pipeline/SkillHeatmap';
@@ -147,6 +147,9 @@ export default function PipelinePage() {
         <div className="mb-6">
           <Link href="/" className="inline-flex items-center gap-2 px-4 py-2 bg-[#D4A574]/20 text-[#3E362E] hover:bg-[#D4A574]/40 transition-colors border-l-4 border-[#D4A574] text-xs font-bold uppercase tracking-widest font-serif">
             <ArrowLeft size={16} className="text-[#D4A574]" /> Back to Evaluator
+          </Link>
+          <Link href="/intelligence" className="inline-flex items-center gap-2 px-4 py-2 bg-[#D4A574]/10 text-[#3E362E] hover:bg-[#D4A574]/30 transition-colors border-l-4 border-[#D4A574]/50 text-xs font-bold uppercase tracking-widest font-serif">
+            <Brain size={16} className="text-[#D4A574]" /> Intelligence Hub
           </Link>
         </div>
         <div className="relative z-10 w-full mb-4">

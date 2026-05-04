@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { FileText, Plus, Search, Users, Activity, Loader2, Star, Calendar, X } from 'lucide-react';
+import { FileText, Plus, Search, Users, Activity, Loader2, Star, Calendar, X, Brain } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { UploadResume } from '@/components/dashboard/UploadResume';
 import { CreateJD } from '@/components/dashboard/CreateJD';
@@ -251,6 +251,12 @@ export default function Dashboard() {
             className="p-4 retro-card retro-card-hover font-bold text-[#4A7B7C] flex-shrink-0 flex items-center justify-center gap-2"
           >
             <Users size={20} /> Mini-ATS
+          </a>
+          <a
+            href="/intelligence"
+            className="p-4 retro-card retro-card-hover font-bold text-[#3E362E] flex-shrink-0 flex items-center justify-center gap-2"
+          >
+            <Brain size={20} /> Intelligence Hub
           </a>
           <button 
             onClick={() => setShowSettings(true)}
