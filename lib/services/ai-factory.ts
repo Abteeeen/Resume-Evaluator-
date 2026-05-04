@@ -1,6 +1,6 @@
 import { GoogleGenerativeAI } from '@google/generative-ai';
 
-export type AIProvider = 'gemini' | 'grok' | 'openai' | 'other';
+export type AIProvider = 'gemini' | 'grok' | 'openai' | 'ollama' | 'other';
 
 export interface AIConfig {
   provider: AIProvider;
@@ -18,6 +18,29 @@ export async function callAI(prompt: string, config: AIConfig) {
     const result = await geminiModel.generateContent(prompt);
     const response = await result.response;
     return response.text();
+  }
+
+  if (provider === 'ollama') {
+    const actualBaseUrl = baseUrl || 'http://localhost:11434';
+    const actualModel = model || 'llama3';
+
+    const response = await fetch(`${actualBaseUrl}/api/chat`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: actualModel,
+        messages: [{ role: 'user', content: prompt }],
+        stream: false,
+        format: 'json', // Ensures JSON output which our evaluators need
+      }),
+    });
+
+    if (!response.ok) {
+      throw new Error(`Ollama Error: ${response.statusText}`);
+    }
+
+    const data = await response.json();
+    return data.message.content;
   }
 
   if (provider === 'grok' || provider === 'openai' || provider === 'other') {

@@ -54,8 +54,8 @@ export function Settings({ onClose }: SettingsProps) {
             <label className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest pl-1 flex items-center gap-2">
               <Cpu size={12} /> AI Provider
             </label>
-            <div className="grid grid-cols-2 gap-2">
-              {['gemini', 'grok', 'openai', 'other'].map((p) => (
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+              {['gemini', 'grok', 'openai', 'ollama', 'other'].map((p) => (
                 <button
                   key={p}
                   onClick={() => setProvider(p)}
@@ -77,10 +77,11 @@ export function Settings({ onClose }: SettingsProps) {
             </label>
             <input
               type="password"
-              placeholder="Paste your API key here..."
+              placeholder={provider === 'ollama' ? "Not required for Ollama" : "Paste your API key here..."}
               value={apiKey}
+              disabled={provider === 'ollama'}
               onChange={(e) => setApiKey(e.target.value)}
-              className="w-full bg-[#1A1A1A] border-2 border-white/20 rounded-xl px-4 py-3 outline-none focus:border-purple-500 focus:bg-[#252525] transition-all font-mono text-sm text-white placeholder:text-zinc-600"
+              className="w-full bg-[#1A1A1A] border-2 border-white/20 rounded-xl px-4 py-3 outline-none focus:border-purple-500 focus:bg-[#252525] transition-all font-mono text-sm text-white placeholder:text-zinc-600 disabled:opacity-50"
             />
           </div>
 
@@ -90,7 +91,7 @@ export function Settings({ onClose }: SettingsProps) {
             </label>
             <input
               type="text"
-              placeholder={provider === 'gemini' ? 'gemini-2.5-flash' : 'grok-2-1212'}
+              placeholder={provider === 'gemini' ? 'gemini-2.5-flash' : provider === 'ollama' ? 'llama3' : 'grok-2-1212'}
               value={model}
               onChange={(e) => setModel(e.target.value)}
               className="w-full bg-[#1A1A1A] border-2 border-white/20 rounded-xl px-4 py-3 outline-none focus:border-purple-500 focus:bg-[#252525] transition-all text-sm text-white placeholder:text-zinc-600"
@@ -100,8 +101,8 @@ export function Settings({ onClose }: SettingsProps) {
 
           <button
             onClick={handleSave}
-            disabled={!apiKey}
-            className="w-full py-4 bg-gradient-to-r from-purple-600 to-blue-600 rounded-xl font-bold flex items-center justify-center gap-2 hover:opacity-90 transition-all disabled:opacity-50"
+            disabled={!apiKey && provider !== 'ollama'}
+            className="w-full py-4 bg-gradient-to-r from-purple-600 to-blue-600 rounded-xl font-bold flex items-center justify-center gap-2 hover:opacity-90 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {saved ? 'Settings Saved!' : <><Save size={18} /> Update Portal</>}
           </button>

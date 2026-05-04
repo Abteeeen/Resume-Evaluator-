@@ -12,10 +12,12 @@ export function CreateJD({ onCreated }: CreateJDProps) {
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
   const [saving, setSaving] = useState(false);
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
   const handleSave = async () => {
     if (!title || !content) return;
     setSaving(true);
+    setErrorMsg(null);
     
     const { error } = await supabase
       .from('job_descriptions')
@@ -26,6 +28,9 @@ export function CreateJD({ onCreated }: CreateJDProps) {
       setTitle('');
       setContent('');
       onCreated();
+    } else {
+      console.error('Supabase error:', error);
+      setErrorMsg(error.message || 'Failed to save JD');
     }
   };
 
@@ -50,6 +55,12 @@ export function CreateJD({ onCreated }: CreateJDProps) {
           onChange={(e) => setContent(e.target.value)}
           className="w-full bg-[#F5E6C8] border-2 border-[#D4A574] rounded-none py-3 px-4 h-32 outline-none focus:border-[#4A7B7C] transition-colors font-medium text-[#3E362E] placeholder-[#3E362E]/40 resize-y"
         />
+
+        {errorMsg && (
+          <div className="bg-red-50 border border-red-200 text-red-600 text-xs p-3 font-mono">
+            Error: {errorMsg}
+          </div>
+        )}
 
         <button
           disabled={!title || !content || saving}
